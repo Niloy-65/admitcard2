@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Information - Royal Institute</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        :root { 
+            --sidebar-bg: #0b1120; 
+            --sidebar-hover: rgba(255, 255, 255, 0.05);
+            --sidebar-active: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            --bg-light: #f3f4f6; 
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --primary: #3b82f6;
+            --border: #e2e8f0;
+        }
+
+        body { background-color: var(--bg-light); color: var(--text-dark); display: flex; height: 100vh; overflow: hidden; }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px; background: var(--sidebar-bg); color: white;
+            display: flex; flex-direction: column; height: 100vh; flex-shrink: 0;
+        }
+        .sidebar-logo {
+            padding: 20px; font-size: 22px; font-weight: 700; color: white;
+            border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center; letter-spacing: 1px;
+        }
+        .sidebar-menu { list-style: none; padding: 15px 10px; flex: 1; }
+        .sidebar-menu li { margin-bottom: 5px; }
+        .sidebar-menu a {
+            display: flex; align-items: center; gap: 12px; color: #94a3b8; text-decoration: none;
+            padding: 12px 15px; border-radius: 8px; font-size: 14px; font-weight: 500; transition: 0.3s;
+        }
+        .sidebar-menu a:hover { background: var(--sidebar-hover); color: white; }
+        .sidebar-menu a.active { background: var(--sidebar-active); color: white; font-weight: 600; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); }
+
+        /* MAIN CONTENT AREA */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* TOPBAR */
+        .topbar {
+            background: white; height: 65px; padding: 0 25px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .search-bar { display: flex; align-items: center; background: var(--bg-light); padding: 8px 15px; border-radius: 6px; width: 300px; }
+        .search-bar input { border: none; background: transparent; outline: none; margin-left: 10px; width: 100%; font-size: 14px; }
+        .topbar-right { display: flex; align-items: center; gap: 20px; color: var(--text-muted); font-size: 18px; cursor: pointer; }
+        .profile-img { width: 35px; height: 35px; border-radius: 50%; background: #ddd; object-fit: cover; }
+
+        /* CONTENT */
+        .content { flex: 1; padding: 25px; overflow-y: auto; }
+        .page-header { margin-bottom: 20px; }
+        .page-header h2 { font-size: 22px; color: var(--text-dark); margin-bottom: 5px; }
+        .breadcrumb { font-size: 13px; color: var(--text-muted); }
+
+        /* FILTER BAR */
+        .filter-bar {
+            background: white; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid var(--border);
+            display: flex; gap: 15px; align-items: center; flex-wrap: wrap;
+        }
+        .filter-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 200px; }
+        .filter-group label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+        .filter-group input, .filter-group select {
+            padding: 10px; border: 1px solid var(--border); border-radius: 6px; outline: none; background: #f8fafc; font-size: 14px;
+        }
+
+        /* TABLE CARD */
+        .card { background: white; border-radius: 10px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid var(--border); }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: #f8fafc; color: var(--text-muted); font-weight: 600; font-size: 13px; text-transform: uppercase; }
+        tr:hover { background: #f1f5f9; }
+        
+        .td-img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; background: #e2e8f0; }
+        
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge-general { background: #e0e7ff; color: #4338ca; }
+        .badge-quota { background: #ffedd5; color: #c2410c; }
+
+        .btn-view { background: rgba(59, 130, 246, 0.1); color: var(--primary); border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-view:hover { background: var(--primary); color: white; }
+
+        /* MODAL FOR PROFILE VIEW */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 1000;
+            justify-content: center; align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: white; width: 100%; max-width: 450px; border-radius: 12px; overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); position: relative;
+        }
+        .modal-header {
+            background: linear-gradient(135deg, #1e293b, #0f172a); color: white; padding: 30px 20px 20px; text-align: center; position: relative;
+        }
+        .close-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; color: white; font-size: 20px; cursor: pointer; opacity: 0.7; }
+        .close-btn:hover { opacity: 1; }
+        .modal-img { width: 90px; height: 90px; border-radius: 50%; border: 4px solid white; object-fit: cover; margin-bottom: 10px; background: white; }
+        .modal-body { padding: 25px; }
+        .info-row { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding: 10px 0; font-size: 14px; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: var(--text-muted); font-weight: 500; }
+        .info-val { color: var(--text-dark); font-weight: 600; text-align: right; }
+
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">ROYAL. INST</div>
+        <ul class="sidebar-menu">
+            <li><a href="index.html"><i class="fa-solid fa-house"></i> Public Portal</a></li>
+            <li><a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+            <li><a href="admin-roles.html"><i class="fa-solid fa-users"></i> Admin Role</a></li>
+            <li><a href="admin.html"><i class="fa-solid fa-id-card"></i> Admit Card</a></li>
+            <li><a href="student-info.html" class="active"><i class="fa-solid fa-user-graduate"></i> Students Info</a></li>
+            <li><a href="#"><i class="fa-solid fa-gear"></i> Settings</a></li>
+        </ul>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="topbar">
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass" style="color: #94a3b8;"></i>
+                <input type="text" placeholder="Global search...">
+            </div>
+            <div class="topbar-right">
+                <i class="fa-regular fa-envelope"></i>
+                <i class="fa-regular fa-bell"></i>
+                <img src="https://via.placeholder.com/35" alt="Profile" class="profile-img">
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="page-header">
+                <h2>Student Information Directory</h2>
+                <div class="breadcrumb">Dashboard <i class="fa-solid fa-angle-right" style="font-size:10px; margin:0 5px;"></i> Students Info</div>
+            </div>
+
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label>Search Student</label>
+                    <input type="text" id="searchFilter" placeholder="Search by Name or ID..." onkeyup="applyFilters()">
+                </div>
+                <div class="filter-group">
+                    <label>Filter by Class</label>
+                    <input type="text" id="classFilter" placeholder="Type class name (e.g. Class 9)..." onkeyup="applyFilters()">
+                </div>
+                <div class="filter-group">
+                    <label>Filter by Category</label>
+                    <select id="categoryFilter" onchange="applyFilters()">
+                        <option value="">All Categories</option>
+                        <option value="General">General</option>
+                        <option value="Tribal Quota">Tribal Quota</option>
+                        <option value="Freedom Fighter Quota">Freedom Fighter Quota</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Photo</th>
+                                <th>ID / Roll</th>
+                                <th>Student Name</th>
+                                <th>Father's Name</th>
+                                <th>Class & Section</th>
+                                <th>Category</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTableBody">
+                            <tr><td colspan="7" style="text-align: center; padding: 20px;">Loading student records...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close-btn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+                <img src="" id="m-img" class="modal-img">
+                <h3 id="m-name" style="margin-bottom: 5px;">Student Name</h3>
+                <p id="m-id" style="font-size: 13px; color: #94a3b8;">ID: 2026000</p>
+            </div>
+            <div class="modal-body">
+                <div class="info-row"><span class="info-label">Father's Name</span> <span class="info-val" id="m-father">-</span></div>
+                <div class="info-row"><span class="info-label">Class & Section</span> <span class="info-val" id="m-class">-</span></div>
+                <div class="info-row"><span class="info-label">Exam Center</span> <span class="info-val" id="m-center">-</span></div>
+                <div class="info-row"><span class="info-label">Category / Quota</span> <span class="info-val" id="m-cat">-</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDeCRi2eEbEZGWpxoE6ZcSbTszkLyJqOY0",
+            authDomain: "student-admit-card-database.firebaseapp.com",
+            projectId: "student-admit-card-database",
+            storageBucket: "student-admit-card-database.firebasestorage.app",
+            messagingSenderId: "620321088092",
+            appId: "1:620321088092:web:051eb0dd839263f21a7c99",
+            measurementId: "G-79T9M2YCFQ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let allStudents = [];
+
+        async function fetchStudents() {
+            try {
+                const snapshot = await getDocs(query(collection(db, "students")));
+                allStudents = [];
+                snapshot.forEach(doc => {
+                    allStudents.push({ id: doc.id, ...doc.data() });
+                });
+                renderTable(allStudents);
+            } catch (error) {
+                console.error("Error loading students:", error);
+                document.getElementById('studentTableBody').innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">Error loading data.</td></tr>';
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #64748b;">No students found based on current filters.</td></tr>';
+                return;
+            }
+
+            data.forEach(s => {
+                const defaultImg = 'https://via.placeholder.com/40';
+                const imgStr = s.imageUrl ? s.imageUrl : defaultImg;
+                
+                let badgeClass = (s.category === "General" || !s.category) ? "badge-general" : "badge-quota";
+                let catText = s.category || "General";
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><img src="${imgStr}" onerror="this.src='${defaultImg}'" class="td-img"></td>
+                        <td><strong>${s.studentId}</strong></td>
+                        <td>${s.name}</td>
+                        <td>${s.fatherName || 'N/A'}</td>
+                        <td>${s.classSection}</td>
+                        <td><span class="badge ${badgeClass}">${catText}</span></td>
+                        <td>
+                            <button class="btn-view" onclick='viewProfile(${JSON.stringify(s).replace(/'/g, "&#39;")})'>
+                                <i class="fa-solid fa-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Multiple Filters Logic
+        window.applyFilters = function() {
+            const search = document.getElementById('searchFilter').value.toLowerCase();
+            const classVal = document.getElementById('classFilter').value.toLowerCase();
+            const catVal = document.getElementById('categoryFilter').value;
+
+            const filtered = allStudents.filter(s => {
+                const matchSearch = s.name.toLowerCase().includes(search) || s.studentId.toLowerCase().includes(search);
+                const matchClass = s.classSection.toLowerCase().includes(classVal);
+                
+                // If catVal is empty, show all. Otherwise exact match.
+                let catText = s.category || "General";
+                const matchCat = (catVal === "") ? true : (catText === catVal);
+
+                return matchSearch && matchClass && matchCat;
+            });
+
+            renderTable(filtered);
+        };
+
+        // View Profile Modal Logic
+        window.viewProfile = function(s) {
+            document.getElementById('m-img').src = s.imageUrl || 'https://via.placeholder.com/90';
+            document.getElementById('m-name').innerText = s.name;
+            document.getElementById('m-id').innerText = `ID: ${s.studentId}`;
+            document.getElementById('m-father').innerText = s.fatherName || 'N/A';
+            document.getElementById('m-class').innerText = s.classSection;
+            document.getElementById('m-center').innerText = s.examCenter;
+            document.getElementById('m-cat').innerText = s.category || 'General';
+
+            document.getElementById('profileModal').classList.add('active');
+        };
+
+        window.closeModal = function() {
+            document.getElementById('profileModal').classList.remove('active');
+        };
+
+        window.onload = fetchStudents;
+    </script>
+</body>
+</html>
